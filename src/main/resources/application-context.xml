@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--启用注解描述Bean和装配-->
+    <context:component-scan base-package="com.lxy.springcore"/>
+
+    <!--启用和加载配置文件-->
+    <context:property-placeholder location="classpath:application.properties"/>
+
+    <!--使用注解配置事务信息-->
+    <!--启动加载配置文件-->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+
+        <property name="initialSize" value="10"/>
+        <property name="maxActive" value="20"/>
+        <property name="minIdle" value="10"/>
+        <property name="queryTimeout" value="5"/>
+    </bean>
+
+    <!--配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--&lt;!&ndash;声明式事务配置 &ndash;&gt;-->
+    <!--&lt;!&ndash;XML配置方法 使用AOP实现&ndash;&gt;-->
+    <!--&lt;!&ndash;事务属性定义&ndash;&gt;-->
+    <!--<tx:advice id="txAdvice" transaction-manager="transactionManager">-->
+        <!--<tx:attributes>-->
+            <!--<tx:method name="select*" read-only="true"/>-->
+            <!--<tx:method name="insert*" rollback-for="Exception"/>-->
+            <!--<tx:method name="delete*" rollback-for="Exception"/>-->
+            <!--<tx:method name="update*" rollback-for="Exception"/>-->
+            <!--<tx:method name="*" rollback-for="Exception"/>-->
+        <!--</tx:attributes>-->
+    <!--</tx:advice>-->
+
+    <!--&lt;!&ndash;使用切点定义目标方法&ndash;&gt;-->
+    <!--<aop:config>-->
+        <!--&lt;!&ndash;使用AOP定义事务切面&ndash;&gt;-->
+        <!--<aop:pointcut id="serviceMethod" expression="execution(* com.lxy.springcore.service.*.*.*(..))"/>-->
+        <!--&lt;!&ndash;引用事务增强&ndash;&gt;-->
+        <!--<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>-->
+    <!--</aop:config>-->
+
+    <!--事务模板类-->
+    <bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"/>
+        <property name="isolationLevelName" value="ISOLATION_REPEATABLE_READ"/>
+    </bean>
+
+    <!--Spring JDBC模板-->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+
+</beans>
